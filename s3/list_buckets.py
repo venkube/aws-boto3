@@ -1,11 +1,12 @@
 '''
-@File    :   create_bucket.py
-@Time    :   2024/07/13 17:27:31
+@File    :   list_buckets.py
+@Time    :   2024/07/13 17:27:01
 @Author  :   VenuMadhav Palugula 
 @Version :   1.0
 @Contact :   info.venkube@gmail.com
 @Desc    :   None
 '''
+
 
 import boto3
 import botocore
@@ -30,30 +31,15 @@ def aws_boto_config():
             },
             max_pool_connections = 10 #maximum number of connections to keep in a connection pool.
         )
-        print(aws_region)
         return my_aws_boto_config
     except botocore.exceptions.ClientError as error:
         raise error
         traceback.print_exc()
 
-#Create S3 bucket using pre defined configuration set using aws configure
-def create_s3_bucket1():
+#Create S3 bucket using client object
+def list_s3_client_bucket():
     try:
-        aws_boto_config()
-        #Intialize the S3 Client
-        s3_client = boto3.client('s3')
-
-        #Create the S3 Bucket
-        s3_bucket_response = s3_client.create_bucket(Bucket='devops-bucket-2')
-        print(s3_bucket_response)
-    except botocore.exceptions.ClientError as error:
-        raise error
-        traceback.print_exc()
-
-#Create S3 bucket using session object
-def create_s3_bucket():
-    try:
-        aws_boto_config()
+        my_aws_boto_config = aws_boto_config()
         # Creating a session with explicit credentials
         session = boto3.Session(
             aws_access_key_id=ACCESS_KEY,
@@ -61,18 +47,36 @@ def create_s3_bucket():
             region_name= aws_region,
         )
         #Intialize the S3 Client
-        s3_client = session.client('s3')
+        s3_client = session.client('s3', config=my_aws_boto_config)
 
-        #Create the S3 Bucket
-        s3_bucket_response = s3_client.create_bucket(
-            Bucket='my-aws-bukcet-381491999890',
-            CreateBucketConfiguration={
-                'LocationConstraint' : 'ap-south-1'
-            })
+        #List the S3 Bucket
+        s3_bucket_response = s3_client.list_buckets()
+
         print(s3_bucket_response)
     except botocore.exceptions.ClientError as error:
         raise error
         traceback.print_exc()
 
+#Create S3 bucket using resource object
+def list_s3_resource_bucket():
+    try:
+        my_aws_boto_config = aws_boto_config()
+        # Creating a session with explicit credentials
+        session = boto3.Session(
+            aws_access_key_id=ACCESS_KEY,
+            aws_secret_access_key=SECRET_KEY,
+            region_name= aws_region,
+        )
+        #Intialize the S3 Client
+        s3_resource = session.resource('s3', config=my_aws_boto_config)
+
+        #List the S3 Bucket
+        for bucket in s3_resource.buckets.all():
+            print(bucket)
+    except botocore.exceptions.ClientError as error:
+        raise error
+        traceback.print_exc()
+
 if __name__ == '__main__':
-    create_s3_bucket()
+    list_s3_client_bucket()
+    list_s3_resource_bucket()
